@@ -1,0 +1,6 @@
+# 로컬 전용 (배포 대상 아님)
+.claude/
+skills-lock.json
+out/
+*.hwp
+*.hwpx
