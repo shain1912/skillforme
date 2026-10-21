@@ -21,7 +21,7 @@ description: 사용자의 문서(docx, hwp/hwpx, pptx, xlsx, html, md 등)를 �
 |---|---|
 | **docx** | python-docx: `run.font.color.rgb = RGBColor(0xFF, 0x00, 0x00)`. XML을 직접 다룰 때는 `<w:rPr><w:color w:val="FF0000"/></w:rPr>`. 바뀐 부분만 칠하려면 run을 나눈다. |
 | **hwpx** | `charPr`에 `textColor="#FF0000"`를 둔 글자 모양을 새로 만들고(원래 charPr를 복사해서 색만 변경), 바뀐 텍스트 run의 `charPrIDRef`를 그 ID로 지정한다. |
-| **hwp** | `k-skill-rhwp` CLI에는 색 옵션이 없으므로 Node에서 `@rhwp/core`를 직접 쓴다(`require('k-skill-rhwp/src/wasm-init').getRhwpCore()` → `new core.HwpDocument(bytes)`). 본문은 `applyCharFormat(sec, para, start, end, '{"textColor":"#FF0000"}')`, 표 셀은 `applyCharFormatInCell(sec, parentPara, control, cell, cellPara, start, end, props)`. 셀 칸을 다시 쓸 때는 `deleteTextInCell` → `insertTextInCell` → 전체를 원래 색으로 → 채운 값 범위만 빨강 순서로 하고, `exportHwp()`로 저장한다. 저장한 뒤 `getCellCharPropertiesAt(...).textColor`로 색을 확인한다. |
+| **hwp** | `k-skill-rhwp` CLI에는 색 옵션이 없으므로 Node에서 `@rhwp/core`를 직접 쓴다. **반드시 `npm i @rhwp/core@0.8.7`(이상)으로 버전을 고정한다** — `k-skill-rhwp` 0.2.0이 끌어오는 0.7.19는 편집 후 저장하면 한글에서 열리지 않는 파일을 만든다(CLI `set-cell-text`/`insert-text`도 마찬가지). 초기화: `globalThis.measureTextWidth` 셈을 넣고 → `const core = await import(pathToFileURL(require.resolve('@rhwp/core')).href)` → `await core.default({ module_or_path: fs.readFileSync(require.resolve('@rhwp/core/rhwp_bg.wasm')) })` → `new core.HwpDocument(bytes)`. 본문은 `applyCharFormat(sec, para, start, end, '{"textColor":"#FF0000"}')`, 표 셀은 `applyCharFormatInCell(sec, parentPara, control, cell, cellPara, start, end, props)`. 셀 칸을 다시 쓸 때는 `deleteTextInCell` → `insertTextInCell` → 전체를 원래 색으로 → 채운 값 범위만 빨강 순서로 하고, `exportHwp()`로 저장한다. 저장한 뒤 `getCellCharPropertiesAt(...).textColor`로 색을 확인한다. |
 | **pptx** | python-pptx: `run.font.color.rgb = RGBColor(0xFF, 0x00, 0x00)`. XML은 `<a:solidFill><a:srgbClr val="FF0000"/></a:solidFill>`. |
 | **xlsx** | openpyxl: 셀의 기존 Font를 `copy(cell.font, color="FFFF0000")`로 복사해서 바꾼다. 셀 일부만 바꿨다면 rich text(`CellRichText`, `TextBlock`)를 쓴다. |
 | **html** | `<span style="color:#FF0000">수정한 텍스트</span>`. 삭제 표시는 `<del style="color:#FF0000">…</del>`. |
@@ -39,3 +39,4 @@ description: 사용자의 문서(docx, hwp/hwpx, pptx, xlsx, html, md 등)를 �
 저장한 다음 파일을 다시 열어서 다음을 확인한다.
 - 바뀐 부분이 실제로 빨간색인지
 - 바뀌지 않은 원문의 색과 서식이 그대로인지
+- hwp는 한글이 설치돼 있으면 COM(`HWPFrame.HwpObject`의 `Open`)으로 실제로 열리는지와 페이지 수가 원본과 같은지 확인한다
